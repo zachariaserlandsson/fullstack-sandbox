@@ -43,3 +43,21 @@ Persist todos on the server. Persisting in a database is not required. (Simple j
 ## Submission
 
 Send a link to your forked repository to your contact person at Sellpy.
+
+## Notes by Zacharias
+
+I chose to move forward with the additional tasks of indicating a completed todo as well as implementing autosave functionality. Autosave functionality was fairly straightforward, that was handled just by adding a call to the passed function saveToDoList in ToDoListForm.jsx. This was done at 2 points, in the onChange of the text fields (so the value of the fields get updated in real-time) as well as in the delete button. This means that if one adds any number of todos without filling their values in, they won't get stored in the memory of the server. The storage and retrieval of the ToDo lists is done using two HTTP endpoints on the server. 
+
+The main headache of the case was dealing with the generated setter functions by React, for example setTodos in ToDoListForm.jsx. When trying to implement the functionality for real-time update of text values for the ToDos, when n characters had been entered, the word would only consist of the n-1th characters upon refreshing the frontend. Using debugging, it was made clear that setTodos did not work as intended. This scenario was encountered:
+
+```
+setTodos([ // immutable update
+                    ...todos.slice(0, index),
+                    event.target.value,
+                    ...todos.slice(index + 1)
+]);
+console.log(event.target.value); // = "hej"
+console.log(todos); // [..., "he", ...]
+```
+
+So a 'hacky' solution had to be implemented instead. I changed the bindings of todos from `const` to `let`, and changed todos explicitly and then just called `setTodos(todos)` in order to get React to redraw the component. 
