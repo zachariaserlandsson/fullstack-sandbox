@@ -5,6 +5,7 @@ import CardContent from '@material-ui/core/CardContent'
 import CardActions from '@material-ui/core/CardActions'
 import Button from '@material-ui/core/Button'
 import DeleteIcon from '@material-ui/icons/Delete'
+import DoneIcon from '@material-ui/icons/Done'
 import AddIcon from '@material-ui/icons/Add'
 import Typography from '@material-ui/core/Typography'
 import { TextField } from '../../shared/FormFields'
@@ -32,12 +33,7 @@ const useStyles = makeStyles({
 
 export const ToDoListForm = ({ toDoList, saveToDoList }) => {
   const classes = useStyles()
-  const [todos, setTodos] = useState(toDoList.todos)
-
-  const handleSubmit = event => {
-    event.preventDefault()
-    saveToDoList(toDoList.id, { todos })
-  }
+  let [todos, setTodos] = useState(toDoList.todos)
 
   return (
     <Card className={classes.card}>
@@ -45,33 +41,59 @@ export const ToDoListForm = ({ toDoList, saveToDoList }) => {
         <Typography variant='headline' component='h2'>
           {toDoList.title}
         </Typography>
-        <form onSubmit={handleSubmit} className={classes.form}>
-          {todos.map((name, index) => (
+        <form className={classes.form}>
+          {todos.map((todoObj, index) => (
             <div key={index} className={classes.todoLine}>
               <Typography className={classes.standardSpace} variant='title'>
                 {index + 1}
               </Typography>
               <TextField
                 label='What to do?'
-                value={name}
+                value={todoObj.title}
                 onChange={event => {
-                  setTodos([ // immutable update
+                  let changedTodo = todoObj;
+                  changedTodo.title = event.target.value;
+                  todos = [ // immutable update
                     ...todos.slice(0, index),
-                    event.target.value,
+                    changedTodo,
                     ...todos.slice(index + 1)
-                  ])
+                  ];
+                  setTodos(todos);
+                  saveToDoList(toDoList.id, { todos });
                 }}
                 className={classes.textField}
               />
               <Button
                 size='small'
+                style={
+                  {backgroundColor: (todoObj.done ? "#7FFF00" : "#FFFFFF"),
+                   color: '#32CD32'}}
+                className={classes.standardSpace}
+                onClick={() => {
+                  let changedTodo = todoObj;
+                  changedTodo.done = !changedTodo.done;
+                  todos = [ // immutable update
+                    ...todos.slice(0, index),
+                    changedTodo,
+                    ...todos.slice(index + 1)
+                  ];
+                  setTodos(todos);
+                  saveToDoList(toDoList.id, { todos });
+                }}
+              >
+                <DoneIcon />
+              </Button>
+              <Button
+                size='small'
                 color='secondary'
                 className={classes.standardSpace}
                 onClick={() => {
-                  setTodos([ // immutable delete
+                  todos = [ // immutable delete
                     ...todos.slice(0, index),
                     ...todos.slice(index + 1)
-                  ])
+                  ];
+                  setTodos(todos);
+                  saveToDoList(toDoList.id, { todos });
                 }}
               >
                 <DeleteIcon />
@@ -83,13 +105,10 @@ export const ToDoListForm = ({ toDoList, saveToDoList }) => {
               type='button'
               color='primary'
               onClick={() => {
-                setTodos([...todos, ''])
+                setTodos([...todos, {title: '', done: false}]);
               }}
             >
               Add Todo <AddIcon />
-            </Button>
-            <Button type='submit' variant='contained' color='primary'>
-              Save
             </Button>
           </CardActions>
         </form>

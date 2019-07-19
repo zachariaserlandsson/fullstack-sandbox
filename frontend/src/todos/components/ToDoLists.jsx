@@ -7,27 +7,20 @@ import ListItemText from '@material-ui/core/ListItemText'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ReceiptIcon from '@material-ui/icons/Receipt'
 import Typography from '@material-ui/core/Typography'
+import axios from 'axios'
 import { ToDoListForm } from './ToDoListForm'
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 const getPersonalTodos = () => {
-  return sleep(1000).then(() => Promise.resolve({
-    '0000000001': {
-      id: '0000000001',
-      title: 'First List',
-      todos: ['First todo of first list!']
-    },
-    '0000000002': {
-      id: '0000000002',
-      title: 'Second List',
-      todos: ['First todo of second list!']
-    }
-  }))
+  return new Promise(resolve => axios.get("http://localhost:3001/retrieve-todo-list/")
+    .then(response => {
+      resolve(response.data);
+    }));
 }
 
 export const ToDoLists = ({ style }) => {
-  const [toDoLists, setToDoLists] = useState({})
+  let [toDoLists, setToDoLists] = useState({})
   const [activeList, setActiveList] = useState()
 
   useEffect(() => {
@@ -64,10 +57,18 @@ export const ToDoLists = ({ style }) => {
       toDoList={toDoLists[activeList]}
       saveToDoList={(id, { todos }) => {
         const listToUpdate = toDoLists[id]
+        toDoLists[id].todos = todos;
         setToDoLists({
           ...toDoLists,
           [id]: { ...listToUpdate, todos }
-        })
+        });
+        axios.post("http://localhost:3001/store-todo-list/", listToUpdate)
+          .then(response => {})
+          .catch(error => {
+            if (error.response) {
+              console.log(error.response.data); // => the response payload
+            }
+          });
       }}
     />}
   </Fragment>
